@@ -7,7 +7,7 @@ import Footer from '@/components/Footer';
 import { 
   Sparkles, Music, Mic, BookOpen, Activity, Play, Pause, Upload, 
   Send, RefreshCw, Award, CheckCircle2, TrendingUp, BarChart2,
-  Clock, ArrowUpRight, Volume2, HelpCircle, Layers, VolumeX, Shield, User
+  Clock, ArrowUpRight, Volume2, HelpCircle, Layers, VolumeX, Shield, User, LogOut
 } from 'lucide-react';
 import { useSwaraStore } from '@/lib/store';
 import { chatApi, audioApi, analysisApi } from '@/lib/api';
@@ -20,9 +20,10 @@ import {
 
 function DashboardContent() {
   const searchParams = useSearchParams();
-  const { user } = useSwaraStore();
+  const { user, logout } = useSwaraStore();
 
   const [activeTab, setActiveTab] = useState('overview');
+  const [ragaFilter, setRagaFilter] = useState<'all' | 'hindustani' | 'carnatic'>('all');
 
   // Handle URL search params e.g. ?tab=chat
   useEffect(() => {
@@ -42,7 +43,63 @@ function DashboardContent() {
   ]);
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  const handleVoiceInput = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Speech recognition is not supported in your browser. Please try Google Chrome or Microsoft Edge.");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-IN';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+      setIsListening(true);
+    };
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setChatInput(transcript);
+      setIsListening(false);
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error("Speech recognition error:", event.error);
+      setIsListening(false);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognition.start();
+  };
+
+  const speakText = (text: string) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const cleanText = text.replace(/[*_#~]/g, '');
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.rate = 0.95;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  const pronounceRaga = (raga: any) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const speechText = `Raga ${raga.name}. ${raga.region} tradition. ${raga.system === 'Hindustani' ? 'Thaat' : 'Melakarta'}: ${raga.thaat}. Aroha: ${raga.aroha.replace(/[\(\)]/g, ' ')}. Avaroha: ${raga.avaroha.replace(/[\(\)]/g, ' ')}. Pakad motif: ${raga.pakad.replace(/[\(\)]/g, ' ')}.`;
+      const utterance = new SpeechSynthesisUtterance(speechText);
+      utterance.rate = 0.85;
+      utterance.pitch = 1.0;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
 
   const handleSendMessage = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -94,44 +151,45 @@ function DashboardContent() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<any>({
-    overall_score: 88.5,
+    overall_score: 0.0,
     pitch_analysis: {
-      mean_pitch: 261.63,
-      pitch_stability: 92.4,
-      sa_estimate: 261.63,
-      shruti_deviation: 4.2,
+      mean_pitch: 0,
+      pitch_stability: 0.0,
+      sa_estimate: 0.0,
+      shruti_deviation: 0.0,
       pitch_contour: [
-        { time: '0.0s', pitch: 261.6, ref: 261.6, swara: 'Sa' },
-        { time: '0.5s', pitch: 292.1, ref: 293.6, swara: 'Re' },
-        { time: '1.0s', pitch: 330.4, ref: 329.6, swara: 'Ga' },
-        { time: '1.5s', pitch: 372.0, ref: 370.0, swara: 'Ma(t)' },
-        { time: '2.0s', pitch: 391.8, ref: 392.0, swara: 'Pa' },
-        { time: '2.5s', pitch: 441.2, ref: 440.0, swara: 'Dha' },
-        { time: '3.0s', pitch: 492.5, ref: 493.8, swara: 'Ni' },
-        { time: '3.5s', pitch: 524.0, ref: 523.2, swara: 'Sā' },
+        { time: '0.0s', pitch: 0, ref: 0, swara: 'Sa' },
+        { time: '0.5s', pitch: 0, ref: 0, swara: 'Re' },
+        { time: '1.0s', pitch: 0, ref: 0, swara: 'Ga' },
+        { time: '1.5s', pitch: 0, ref: 0, swara: 'Ma' },
+        { time: '2.0s', pitch: 0, ref: 0, swara: 'Pa' },
+        { time: '2.5s', pitch: 0, ref: 0, swara: 'Dha' },
+        { time: '3.0s', pitch: 0, ref: 0, swara: 'Ni' },
+        { time: '3.5s', pitch: 0, ref: 0, swara: 'Sā' },
       ]
     },
-    detected_swaras: [
-      { swara: 'Sa', accuracy: 98.2, is_correct: true },
-      { swara: 'Re', accuracy: 91.5, is_correct: true },
-      { swara: 'Ga', accuracy: 94.0, is_correct: true },
-      { swara: 'Ma (Tivra)', accuracy: 86.8, is_correct: true },
-      { swara: 'Pa', accuracy: 96.4, is_correct: true },
-      { swara: 'Dha', accuracy: 89.1, is_correct: true },
-      { swara: 'Ni', accuracy: 78.4, is_correct: true },
-    ],
-    raga_predictions: [
-      { raga_name: 'Yaman', confidence: 0.89, thaat: 'Kalyan' },
-      { raga_name: 'Bilawal', confidence: 0.54, thaat: 'Bilawal' },
-      { raga_name: 'Khamaj', confidence: 0.32, thaat: 'Khamaj' },
-    ],
-    ai_feedback: "🙏 **Namaste Shishya!**\n\nYour singing rendition shows **strong tonic stability** (Sa at 261.6 Hz). Your execution of **Raga Yaman** swaras is 88.5% accurate. Notice slight pitch fluctuation on *Ni* (78.4% accuracy). Focus on sustaining the *Ni-Re-Ga* glide with tanpura drone.",
+    detected_swaras: [],
+    raga_predictions: [],
+    ai_feedback: "🙏 **Namaste Shishya!**\n\nWelcome to SwaraGPT! Your initial musical score is currently at **0/100**. Start your first vocal practice session or upload an audio recording to receive pitch stability analysis and AI guru feedback.",
     practice_recommendations: [
-      "Sustain 'Ni' for 10 seconds with Tanpura drone before ascending to 'Re'",
-      "Practice 'Ni Re Ga, Ma(t) Dha Ni Sā' alankar 5 times slow tempo",
-      "Focus on eliminating vocal tremor during transition from Pa to Dha"
+      "Sing 'Sa' sustained on Tanpura drone to establish your base tonic pitch",
+      "Practice basic Alankars (Sa Re Ga Ma Pa Dha Ni Sā Ascending/Descending)",
+      "Record a 15-second vocal riyaz session to analyze your pitch accuracy"
     ]
   });
+
+  // Active recording timer
+  useEffect(() => {
+    let interval: any = null;
+    if (isRecording) {
+      interval = setInterval(() => {
+        setRecordingTime((prev) => prev + 1);
+      }, 1000);
+    } else {
+      clearInterval(interval);
+    }
+    return () => clearInterval(interval);
+  }, [isRecording]);
 
   const handleStartRecording = () => {
     setIsRecording(true);
@@ -140,7 +198,34 @@ function DashboardContent() {
 
   const handleStopRecording = () => {
     setIsRecording(false);
-    runAnalysisSimulation();
+    
+    // Check if recording duration is too short or silent
+    if (recordingTime < 2) {
+      setAnalysisResult({
+        overall_score: 0.0,
+        pitch_analysis: {
+          mean_pitch: 0,
+          pitch_stability: 0.0,
+          sa_estimate: 0.0,
+          shruti_deviation: 0.0,
+          pitch_contour: [
+            { time: '0.0s', pitch: 0, ref: 0, swara: 'Sa' },
+            { time: '0.5s', pitch: 0, ref: 0, swara: 'Re' },
+            { time: '1.0s', pitch: 0, ref: 0, swara: 'Ga' },
+          ]
+        },
+        detected_swaras: [],
+        raga_predictions: [],
+        ai_feedback: "⚠️ **No Singing Voice Detected!**\n\nThe recording was too short or silent (less than 2 seconds). No swaras or ragas could be identified.\n\nPlease click **Start Recording**, unmute your microphone, and sing clearly (e.g. *Sa Re Ga Ma Pa*) for at least 3-5 seconds.",
+        practice_recommendations: [
+          "Check browser microphone permissions",
+          "Sing continuously into the microphone for 5-10 seconds",
+          "Try uploading an audio file (.wav or .mp3) if microphone access is disabled"
+        ]
+      });
+    } else {
+      runAnalysisSimulation();
+    }
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -154,12 +239,12 @@ function DashboardContent() {
     setTimeout(() => {
       setAnalyzing(false);
       setAnalysisResult({
-        overall_score: 91.2,
+        overall_score: 86.4,
         pitch_analysis: {
-          mean_pitch: 265.4,
-          pitch_stability: 94.8,
+          mean_pitch: 261.63,
+          pitch_stability: 88.5,
           sa_estimate: 261.63,
-          shruti_deviation: 3.1,
+          shruti_deviation: 3.8,
           pitch_contour: [
             { time: '0.0s', pitch: 261.6, ref: 261.6, swara: 'Sa' },
             { time: '0.5s', pitch: 293.6, ref: 293.6, swara: 'Re' },
@@ -169,17 +254,17 @@ function DashboardContent() {
           ]
         },
         detected_swaras: [
-          { swara: 'Sa', accuracy: 99.1, is_correct: true },
-          { swara: 'Re', accuracy: 95.4, is_correct: true },
-          { swara: 'Ga', accuracy: 93.8, is_correct: true },
-          { swara: 'Ma', accuracy: 91.2, is_correct: true },
-          { swara: 'Pa', accuracy: 97.5, is_correct: true },
+          { swara: 'Sa', accuracy: 98.1, is_correct: true },
+          { swara: 'Re', accuracy: 92.4, is_correct: true },
+          { swara: 'Ga', accuracy: 90.8, is_correct: true },
+          { swara: 'Ma', accuracy: 88.2, is_correct: true },
+          { swara: 'Pa', accuracy: 95.5, is_correct: true },
         ],
         raga_predictions: [
-          { raga_name: 'Bhupali', confidence: 0.94, thaat: 'Kalyan' },
-          { raga_name: 'Desh', confidence: 0.45, thaat: 'Khamaj' },
+          { raga_name: 'Bhupali', confidence: 0.92, thaat: 'Kalyan' },
+          { raga_name: 'Desh', confidence: 0.41, thaat: 'Khamaj' },
         ],
-        ai_feedback: "🌟 **Outstanding Rendition!**\n\nYour pitch stability reached 94.8%. The swara sequence perfectly matches **Raga Bhupali** (Pentatonic scale: Sa Re Ga Pa Dha). Keep up the daily riyaz!",
+        ai_feedback: "🌟 **Vocal Riyaz Recorded!**\n\nYour pitch stability reached 88.5% on tonic Sa (261.6 Hz). Your swara sequence matches **Raga Bhupali** (Sa Re Ga Pa Dha). Keep practicing to improve pitch stability!",
         practice_recommendations: [
           "Try adding meend (slide) between Ga and Pa",
           "Practice taan speed variations in Teentaal"
@@ -188,14 +273,14 @@ function DashboardContent() {
     }, 1500);
   };
 
-  // Mock radar chart data for progress tab
+  // Initial radar chart data for progress tab (student score initialized to zero)
   const skillRadarData = [
-    { skill: 'Pitch Accuracy', score: 92 },
-    { skill: 'Shruti Alignment', score: 88 },
-    { skill: 'Swara Recognition', score: 95 },
-    { skill: 'Rhythm / Taal', score: 84 },
-    { skill: 'Voice Stability', score: 90 },
-    { skill: 'Raga Execution', score: 87 },
+    { skill: 'Pitch Accuracy', score: 0 },
+    { skill: 'Shruti Alignment', score: 0 },
+    { skill: 'Swara Recognition', score: 0 },
+    { skill: 'Rhythm / Taal', score: 0 },
+    { skill: 'Voice Stability', score: 0 },
+    { skill: 'Raga Execution', score: 0 },
   ];
 
   return (
@@ -206,17 +291,30 @@ function DashboardContent() {
         <div className="glass-card p-4 rounded-2xl border border-amber-500/20 sticky top-24 space-y-2">
           
           {/* User Badge Header */}
-          <div className="p-3 mb-4 rounded-xl bg-gradient-to-r from-amber-500/10 to-rose-500/10 border border-amber-500/20 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-rose-500 flex items-center justify-center font-bold text-black text-sm">
-              {user?.name ? user.name[0] : 'S'}
-            </div>
-            <div className="overflow-hidden">
-              <div className="text-sm font-bold text-white truncate">{user?.name || 'Sakshi Bhosale'}</div>
-              <div className="text-[11px] text-amber-400 font-mono flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>Student Riyaz</span>
+          <div className="p-3 mb-4 rounded-xl bg-gradient-to-r from-amber-500/10 to-rose-500/10 border border-amber-500/20 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-3 overflow-hidden">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-rose-500 flex items-center justify-center font-bold text-black text-sm shrink-0">
+                {user?.name ? user.name[0] : 'S'}
+              </div>
+              <div className="overflow-hidden">
+                <div className="text-sm font-bold text-white truncate">{user?.name || 'Sakshi Bhosale'}</div>
+                <div className="text-[11px] text-amber-400 font-mono flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>Student Riyaz</span>
+                </div>
               </div>
             </div>
+            <button
+              onClick={() => {
+                logout();
+                window.location.href = '/login';
+              }}
+              className="p-1.5 rounded-lg text-gray-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors shrink-0"
+              title="Log Out"
+              id="sidebar-user-logout-btn"
+            >
+              <LogOut className="w-4 h-4 text-rose-400" />
+            </button>
           </div>
 
           {/* Nav Menu Items */}
@@ -253,6 +351,23 @@ function DashboardContent() {
             );
           })}
 
+          {/* Explicit Logout Button at bottom of sidebar */}
+          <div className="pt-2">
+            <button
+              onClick={() => {
+                logout();
+                window.location.href = '/login';
+              }}
+              className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs sm:text-sm font-medium text-rose-400 hover:bg-rose-500/10 transition-all border border-rose-500/20 mt-2"
+              id="sidebar-bottom-logout-btn"
+            >
+              <div className="flex items-center gap-3">
+                <LogOut className="w-4 h-4 text-rose-400" />
+                <span>Log Out</span>
+              </div>
+            </button>
+          </div>
+
         </div>
       </aside>
 
@@ -285,29 +400,29 @@ function DashboardContent() {
               
               <div className="glass-card p-4 rounded-xl border-amber-500/20">
                 <div className="text-xs text-gray-400 font-medium">Total Practice Sessions</div>
-                <div className="text-2xl font-bold text-white mt-1 font-mono">24</div>
-                <div className="text-[11px] text-emerald-400 mt-1 flex items-center gap-1">
-                  <TrendingUp className="w-3 h-3" /> +4 this week
+                <div className="text-2xl font-bold text-white mt-1 font-mono">0</div>
+                <div className="text-[11px] text-gray-400 mt-1 flex items-center gap-1">
+                  <TrendingUp className="w-3 h-3" /> Ready to start
                 </div>
               </div>
 
               <div className="glass-card p-4 rounded-xl border-amber-500/20">
                 <div className="text-xs text-gray-400 font-medium">Avg Pitch Stability</div>
-                <div className="text-2xl font-bold text-amber-400 mt-1 font-mono">92.4%</div>
+                <div className="text-2xl font-bold text-amber-400 mt-1 font-mono">0.0%</div>
                 <div className="text-[11px] text-amber-300 mt-1 flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3" /> YIN Pitch Tracking
+                  <CheckCircle2 className="w-3 h-3" /> Baseline pending
                 </div>
               </div>
 
               <div className="glass-card p-4 rounded-xl border-amber-500/20">
                 <div className="text-xs text-gray-400 font-medium">Most Practiced Raga</div>
-                <div className="text-2xl font-bold text-rose-400 mt-1 font-sans">Yaman</div>
-                <div className="text-[11px] text-gray-400 mt-1">Kalyan Thaat (89% match)</div>
+                <div className="text-2xl font-bold text-rose-400 mt-1 font-sans">Not Started</div>
+                <div className="text-[11px] text-gray-400 mt-1">Select a raga to practice</div>
               </div>
 
               <div className="glass-card p-4 rounded-xl border-amber-500/20">
                 <div className="text-xs text-gray-400 font-medium">Daily Streak</div>
-                <div className="text-2xl font-bold text-emerald-400 mt-1 font-mono">7 Days ⚡</div>
+                <div className="text-2xl font-bold text-emerald-400 mt-1 font-mono">0 Days ⚡</div>
                 <div className="text-[11px] text-emerald-400 mt-1">Goal: 10 Days</div>
               </div>
 
@@ -321,7 +436,9 @@ function DashboardContent() {
                   <span>Recent Singing Pitch Contour (Detected vs Reference)</span>
                 </h3>
                 <span className="text-xs text-amber-400 font-mono bg-amber-500/10 px-2 py-1 rounded border border-amber-500/20">
-                  Sa = 261.63 Hz (C3)
+                  {analysisResult.pitch_analysis.sa_estimate > 0 
+                    ? `Sa = ${analysisResult.pitch_analysis.sa_estimate} Hz` 
+                    : 'Sa = 0 Hz (Not Calibrated)'}
                 </span>
               </div>
 
@@ -339,7 +456,7 @@ function DashboardContent() {
                       </linearGradient>
                     </defs>
                     <XAxis dataKey="swara" stroke="#6B7280" tick={{ fill: '#9CA3AF', fontSize: 12 }} />
-                    <YAxis stroke="#6B7280" tick={{ fill: '#9CA3AF', fontSize: 12 }} unit="Hz" domain={[240, 550]} />
+                    <YAxis stroke="#6B7280" tick={{ fill: '#9CA3AF', fontSize: 12 }} unit="Hz" domain={[0, 550]} />
                     <Tooltip contentStyle={{ backgroundColor: '#0F1420', borderColor: '#F59E0B' }} />
                     <Area type="monotone" dataKey="pitch" stroke="#F59E0B" strokeWidth={3} fillOpacity={1} fill="url(#pitchGlow)" name="Singing Pitch (Hz)" />
                     <Area type="monotone" dataKey="ref" stroke="#EF4444" strokeWidth={2} strokeDasharray="3 3" fillOpacity={1} fill="url(#refGlow)" name="Ideal Swara Pitch (Hz)" />
@@ -428,6 +545,16 @@ function DashboardContent() {
                     }`}
                   >
                     {msg.content}
+                    {msg.role === 'assistant' && (
+                      <button
+                        onClick={() => speakText(msg.content)}
+                        className="mt-2 flex items-center gap-1.5 text-[11px] text-amber-400 hover:text-amber-300 transition-colors pt-2 border-t border-amber-500/10"
+                        title="Listen to Guru Voice"
+                      >
+                        <Volume2 className="w-3.5 h-3.5" />
+                        <span>Listen to Guru</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -464,12 +591,28 @@ function DashboardContent() {
 
             {/* Chat Input Bar */}
             <form onSubmit={handleSendMessage} className="p-3 bg-[#080B11] border-t border-gray-800 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleVoiceInput}
+                className={`p-2.5 rounded-xl border transition-all ${
+                  isListening
+                    ? 'bg-rose-500/20 border-rose-500 text-rose-400 animate-pulse'
+                    : 'bg-[#0D121F] border-amber-500/20 text-amber-400 hover:bg-amber-500/10'
+                }`}
+                title={isListening ? "Listening... Speak your raga" : "Voice Input (Speak your raga question)"}
+                id="voice-input-btn"
+              >
+                <Mic className={`w-4 h-4 ${isListening ? 'animate-bounce' : ''}`} />
+              </button>
+              
               <input
                 type="text"
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
-                placeholder="Ask Guru about ragas, swaras, thaats, practice exercises..."
-                className="flex-1 bg-[#0D121F] border border-amber-500/20 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 focus:outline-none focus:border-amber-500"
+                placeholder={isListening ? "Listening... Speak your raga question now" : "Ask Guru vocally or type about ragas, swaras, thaats..."}
+                className={`flex-1 bg-[#0D121F] border rounded-xl px-4 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 focus:outline-none transition-all ${
+                  isListening ? 'border-rose-500 text-rose-300' : 'border-amber-500/20 focus:border-amber-500'
+                }`}
                 id="chat-input-field"
               />
               <button
@@ -588,13 +731,17 @@ function DashboardContent() {
                   <div className="glass-card p-5 rounded-xl border-amber-500/20">
                     <div className="text-xs text-gray-400">Estimated Sa Tonic</div>
                     <div className="text-2xl font-bold text-amber-400 font-mono mt-1">
-                      {analysisResult.pitch_analysis.sa_estimate} Hz (C3)
+                      {analysisResult.pitch_analysis.sa_estimate > 0 
+                        ? `${analysisResult.pitch_analysis.sa_estimate} Hz` 
+                        : '0 Hz (Pending)'}
                     </div>
                   </div>
                   <div className="glass-card p-5 rounded-xl border-amber-500/20">
                     <div className="text-xs text-gray-400">Raga Match Confidence</div>
                     <div className="text-2xl font-bold text-emerald-400 font-sans mt-1">
-                      {analysisResult.raga_predictions[0].raga_name} ({Math.round(analysisResult.raga_predictions[0].confidence * 100)}%)
+                      {analysisResult.raga_predictions && analysisResult.raga_predictions.length > 0
+                        ? `${analysisResult.raga_predictions[0].raga_name} (${Math.round(analysisResult.raga_predictions[0].confidence * 100)}%)`
+                        : 'None (0%)'}
                     </div>
                   </div>
                 </div>
@@ -602,16 +749,22 @@ function DashboardContent() {
                 {/* Swara Accuracy Table */}
                 <div className="glass-card p-6 rounded-2xl border-amber-500/20">
                   <h4 className="text-sm font-bold text-white mb-4">Detected Swara Accuracy Breakdown</h4>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3">
-                    {analysisResult.detected_swaras.map((s: any, idx: number) => (
-                      <div key={idx} className="bg-[#090E1A] p-3 rounded-xl border border-amber-500/15 text-center">
-                        <div className="text-xs text-gray-400 font-mono">{s.swara}</div>
-                        <div className={`text-lg font-bold font-mono mt-1 ${s.accuracy > 85 ? 'text-emerald-400' : 'text-amber-400'}`}>
-                          {s.accuracy}%
+                  {analysisResult.detected_swaras && analysisResult.detected_swaras.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3">
+                      {analysisResult.detected_swaras.map((s: any, idx: number) => (
+                        <div key={idx} className="bg-[#090E1A] p-3 rounded-xl border border-amber-500/15 text-center">
+                          <div className="text-xs text-gray-400 font-mono">{s.swara}</div>
+                          <div className={`text-lg font-bold font-mono mt-1 ${s.accuracy > 85 ? 'text-emerald-400' : 'text-amber-400'}`}>
+                            {s.accuracy}%
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-xs text-gray-400 italic bg-[#090E1A] p-4 rounded-xl text-center border border-amber-500/10">
+                      No swaras detected yet. Record your vocal practice to view accuracy breakdown per swara.
+                    </div>
+                  )}
                 </div>
 
                 {/* Virtual Guru AI Feedback Report */}
@@ -645,20 +798,59 @@ function DashboardContent() {
         {activeTab === 'ragas' && (
           <div className="space-y-6">
             
-            <div className="glass-card p-6 rounded-2xl border-amber-500/20">
-              <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-amber-400" />
-                <span>Indian Classical Raga & Motif Library</span>
-              </h3>
-              <p className="text-gray-400 text-xs sm:text-sm">
-                Explore Hindustani and Carnatic ragas, their parent thaat structures, Aroha/Avaroha scales, and characteristic pakad motifs.
-              </p>
+            <div className="glass-card p-6 rounded-2xl border-amber-500/20 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-lg font-bold text-white mb-1 flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 text-amber-400" />
+                  <span>Indian Classical Raga & Motif Library</span>
+                </h3>
+                <p className="text-gray-400 text-xs sm:text-sm">
+                  Explore Hindustani (North Indian 10 Thaats) and Carnatic (South Indian 72 Melakartas) traditions, scales, and motifs.
+                </p>
+              </div>
+
+              {/* Tradition Filter Tabs */}
+              <div className="flex items-center gap-2 bg-[#090E1A] p-1.5 rounded-xl border border-amber-500/20 shrink-0">
+                <button
+                  onClick={() => setRagaFilter('all')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    ragaFilter === 'all'
+                      ? 'bg-amber-500 text-black font-bold shadow-md'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  All Ragas
+                </button>
+                <button
+                  onClick={() => setRagaFilter('hindustani')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    ragaFilter === 'hindustani'
+                      ? 'bg-amber-500 text-black font-bold shadow-md'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  North Indian (Hindustani)
+                </button>
+                <button
+                  onClick={() => setRagaFilter('carnatic')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    ragaFilter === 'carnatic'
+                      ? 'bg-amber-500 text-black font-bold shadow-md'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  South Indian (Carnatic)
+                </button>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[
+                // Hindustani Ragas
                 {
                   name: 'Yaman',
+                  system: 'Hindustani',
+                  region: 'North Indian',
                   thaat: 'Kalyan',
                   aroha: 'Ni Re Ga, Ma(t) Dha Ni Sā',
                   avaroha: 'Sā Ni Dha Pa, Ma(t) Ga Re Sa',
@@ -669,6 +861,8 @@ function DashboardContent() {
                 },
                 {
                   name: 'Bhairav',
+                  system: 'Hindustani',
+                  region: 'North Indian',
                   thaat: 'Bhairav',
                   aroha: 'Sa Re(k) Ga Ma Pa Dha(k) Ni Sā',
                   avaroha: 'Sā Ni Dha(k) Pa Ma Ga Re(k) Sa',
@@ -679,6 +873,8 @@ function DashboardContent() {
                 },
                 {
                   name: 'Bhairavi',
+                  system: 'Hindustani',
+                  region: 'North Indian',
                   thaat: 'Bhairavi',
                   aroha: 'Sa Re(k) Ga(k) Ma Pa Dha(k) Ni(k) Sā',
                   avaroha: 'Sā Ni(k) Dha(k) Pa Ma Ga(k) Re(k) Sa',
@@ -689,6 +885,8 @@ function DashboardContent() {
                 },
                 {
                   name: 'Bilawal',
+                  system: 'Hindustani',
+                  region: 'North Indian',
                   thaat: 'Bilawal',
                   aroha: 'Sa Re Ga Ma Pa Dha Ni Sā',
                   avaroha: 'Sā Ni Dha Pa Ma Ga Re Sa',
@@ -697,29 +895,130 @@ function DashboardContent() {
                   time: 'Late Morning',
                   pakad: 'Ga Re, Ga Ma Pa, Dha Ni Sā'
                 },
-              ].map((raga, idx) => (
-                <div key={idx} className="glass-card p-5 rounded-2xl border-amber-500/20 space-y-3">
-                  <div className="flex items-center justify-between border-b border-gray-800 pb-3">
-                    <div>
-                      <h4 className="text-lg font-bold text-amber-300">Raga {raga.name}</h4>
-                      <span className="text-xs text-gray-400 font-mono">Thaat: {raga.thaat}</span>
-                    </div>
-                    <span className="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-300 text-xs border border-amber-500/20">
-                      {raga.time}
-                    </span>
-                  </div>
+                {
+                  name: 'Malkauns',
+                  system: 'Hindustani',
+                  region: 'North Indian',
+                  thaat: 'Bhairavi',
+                  aroha: 'Sa Ga(k) Ma Dha(k) Ni(k) Sā',
+                  avaroha: 'Sā Ni(k) Dha(k) Ma Ga(k) Sa',
+                  vadi: 'Ma',
+                  samvadi: 'Sa',
+                  time: 'Late Night',
+                  pakad: 'Ga(k) Ma Dha(k) Ma, Ga(k) Sa'
+                },
 
-                  <div className="space-y-1.5 text-xs">
-                    <div><span className="text-gray-400 font-semibold">Aroha:</span> <span className="text-emerald-400 font-mono">{raga.aroha}</span></div>
-                    <div><span className="text-gray-400 font-semibold">Avaroha:</span> <span className="text-rose-400 font-mono">{raga.avaroha}</span></div>
-                    <div><span className="text-gray-400 font-semibold">Pakad Motif:</span> <span className="text-amber-300 font-mono">{raga.pakad}</span></div>
-                    <div className="flex gap-4 pt-1 text-gray-400">
-                      <span>Vadi: <strong className="text-white">{raga.vadi}</strong></span>
-                      <span>Samvadi: <strong className="text-white">{raga.samvadi}</strong></span>
+                // Carnatic Ragas
+                {
+                  name: 'Mayamalavagowla',
+                  system: 'Carnatic',
+                  region: 'South Indian',
+                  thaat: 'Melakarta #15',
+                  aroha: 'Sa Ri1 Ga3 Ma1 Pa Dha1 Ni3 Sā',
+                  avaroha: 'Sā Ni3 Dha1 Pa Ma1 Ga3 Ri1 Sa',
+                  vadi: 'Ga3',
+                  samvadi: 'Dha1',
+                  time: 'Morning (Abhyasa Raga)',
+                  pakad: 'Sa Ri1 Ga3 Ma1, Pa Dha1 Ni3 Sā'
+                },
+                {
+                  name: 'Dheerasankarabharanam',
+                  system: 'Carnatic',
+                  region: 'South Indian',
+                  thaat: 'Melakarta #29',
+                  aroha: 'Sa Ri2 Ga3 Ma1 Pa Dha2 Ni3 Sā',
+                  avaroha: 'Sā Ni3 Dha2 Pa Ma1 Ga3 Ri2 Sa',
+                  vadi: 'Ga3',
+                  samvadi: 'Dha2',
+                  time: 'Any time (Majestic)',
+                  pakad: 'Sa Ri2 Ga3 Ma1 Pa, Dha2 Ni3 Sā'
+                },
+                {
+                  name: 'Mechakalyani',
+                  system: 'Carnatic',
+                  region: 'South Indian',
+                  thaat: 'Melakarta #65',
+                  aroha: 'Sa Ri2 Ga3 Ma2 Pa Dha2 Ni3 Sā',
+                  avaroha: 'Sā Ni3 Dha2 Pa Ma2 Ga3 Ri2 Sa',
+                  vadi: 'Ga3',
+                  samvadi: 'Ni3',
+                  time: 'Evening (Auspicious)',
+                  pakad: 'Ri2 Ga3 Ma2 Pa, Dha2 Ni3 Sā'
+                },
+                {
+                  name: 'Mohanam',
+                  system: 'Carnatic',
+                  region: 'South Indian',
+                  thaat: 'Janya of Harikambhoji (#28)',
+                  aroha: 'Sa Ri2 Ga3 Pa Dha2 Sā',
+                  avaroha: 'Sā Dha2 Pa Ga3 Ri2 Sa',
+                  vadi: 'Ga3',
+                  samvadi: 'Dha2',
+                  time: 'Evening / Night',
+                  pakad: 'Sa Ri2 Ga3 Pa, Dha2 Sā'
+                },
+                {
+                  name: 'Hamsadhvani',
+                  system: 'Carnatic',
+                  region: 'South Indian',
+                  thaat: 'Janya of Sankarabharanam (#29)',
+                  aroha: 'Sa Ri2 Ga3 Pa Ni3 Sā',
+                  avaroha: 'Sā Ni3 Pa Ga3 Ri2 Sa',
+                  vadi: 'Ga3',
+                  samvadi: 'Ni3',
+                  time: 'Concert Opening / Invocation',
+                  pakad: 'Sa Ri2 Ga3 Pa, Ni3 Sā'
+                },
+              ]
+                .filter((raga) => {
+                  if (ragaFilter === 'hindustani') return raga.system === 'Hindustani';
+                  if (ragaFilter === 'carnatic') return raga.system === 'Carnatic';
+                  return true;
+                })
+                .map((raga, idx) => (
+                  <div key={idx} className="glass-card p-5 rounded-2xl border-amber-500/20 space-y-3 relative overflow-hidden">
+                    <div className="flex items-center justify-between border-b border-gray-800 pb-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-lg font-bold text-amber-300">Raga {raga.name}</h4>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase border ${
+                            raga.system === 'Hindustani' 
+                              ? 'bg-rose-500/10 text-rose-300 border-rose-500/30' 
+                              : 'bg-indigo-500/10 text-indigo-300 border-indigo-500/30'
+                          }`}>
+                            {raga.region}
+                          </span>
+                        </div>
+                        <span className="text-xs text-gray-400 font-mono mt-0.5 block">
+                          {raga.system === 'Hindustani' ? `Thaat: ${raga.thaat}` : `Melakarta: ${raga.thaat}`}
+                        </span>
+                      </div>
+                      <span className="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-300 text-xs border border-amber-500/20 shrink-0">
+                        {raga.time}
+                      </span>
                     </div>
+
+                    <div className="space-y-1.5 text-xs">
+                      <div><span className="text-gray-400 font-semibold">Aroha:</span> <span className="text-emerald-400 font-mono">{raga.aroha}</span></div>
+                      <div><span className="text-gray-400 font-semibold">Avaroha:</span> <span className="text-rose-400 font-mono">{raga.avaroha}</span></div>
+                      <div><span className="text-gray-400 font-semibold">Pakad Motif:</span> <span className="text-amber-300 font-mono">{raga.pakad}</span></div>
+                      <div className="flex gap-4 pt-1 text-gray-400">
+                        <span>Vadi/Jiva: <strong className="text-white">{raga.vadi}</strong></span>
+                        <span>Samvadi: <strong className="text-white">{raga.samvadi}</strong></span>
+                      </div>
+                    </div>
+
+                    {/* Vocal Pronunciation & Audio Chanting Button */}
+                    <button
+                      onClick={() => pronounceRaga(raga)}
+                      className="w-full mt-3 py-2 px-3 rounded-xl bg-gradient-to-r from-amber-500/10 to-amber-600/20 border border-amber-500/30 text-amber-300 font-semibold text-xs hover:bg-amber-500/20 transition-all flex items-center justify-center gap-2"
+                      title="Listen to vocal pronunciation of raga name, Aroha, Avaroha, and Pakad"
+                    >
+                      <Volume2 className="w-4 h-4 text-amber-400" />
+                      <span>Listen Pronunciation & Swara Chanting</span>
+                    </button>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
 
           </div>

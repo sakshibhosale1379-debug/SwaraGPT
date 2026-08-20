@@ -5,9 +5,11 @@ Uses pattern matching against aroha/avaroha definitions of major Hindustani raga
 from typing import Optional
 
 
-# ─── Raga Database (Major Hindustani Ragas) ─────────────────
+# ─── Raga Database (Hindustani North Indian & Carnatic South Indian) ─────────
 RAGA_DATABASE = {
+    # ─── Hindustani (North Indian) Ragas ───
     "Yaman": {
+        "system": "Hindustani",
         "thaat": "Kalyan",
         "aroha": ["Ni", "Re", "Ga", "Ma (Tivra)", "Dha", "Ni", "Sa"],
         "avaroha": ["Sa", "Ni", "Dha", "Pa", "Ma (Tivra)", "Ga", "Re", "Sa"],
@@ -18,6 +20,7 @@ RAGA_DATABASE = {
         "mood": "Devotional, peaceful, romantic",
     },
     "Bhairav": {
+        "system": "Hindustani",
         "thaat": "Bhairav",
         "aroha": ["Sa", "Re (Komal)", "Ga", "Ma", "Pa", "Dha (Komal)", "Ni", "Sa"],
         "avaroha": ["Sa", "Ni", "Dha (Komal)", "Pa", "Ma", "Ga", "Re (Komal)", "Sa"],
@@ -28,6 +31,7 @@ RAGA_DATABASE = {
         "mood": "Serious, devotional, majestic",
     },
     "Bhairavi": {
+        "system": "Hindustani",
         "thaat": "Bhairavi",
         "aroha": ["Sa", "Re (Komal)", "Ga (Komal)", "Ma", "Pa", "Dha (Komal)", "Ni (Komal)", "Sa"],
         "avaroha": ["Sa", "Ni (Komal)", "Dha (Komal)", "Pa", "Ma", "Ga (Komal)", "Re (Komal)", "Sa"],
@@ -38,6 +42,7 @@ RAGA_DATABASE = {
         "mood": "Devotional, emotional, compassionate",
     },
     "Bilawal": {
+        "system": "Hindustani",
         "thaat": "Bilawal",
         "aroha": ["Sa", "Re", "Ga", "Ma", "Pa", "Dha", "Ni", "Sa"],
         "avaroha": ["Sa", "Ni", "Dha", "Pa", "Ma", "Ga", "Re", "Sa"],
@@ -48,6 +53,7 @@ RAGA_DATABASE = {
         "mood": "Bright, joyful",
     },
     "Kafi": {
+        "system": "Hindustani",
         "thaat": "Kafi",
         "aroha": ["Sa", "Re", "Ga (Komal)", "Ma", "Pa", "Dha", "Ni (Komal)", "Sa"],
         "avaroha": ["Sa", "Ni (Komal)", "Dha", "Pa", "Ma", "Ga (Komal)", "Re", "Sa"],
@@ -58,6 +64,7 @@ RAGA_DATABASE = {
         "mood": "Romantic, light, playful",
     },
     "Asavari": {
+        "system": "Hindustani",
         "thaat": "Asavari",
         "aroha": ["Sa", "Re", "Ma", "Pa", "Dha (Komal)", "Sa"],
         "avaroha": ["Sa", "Ni (Komal)", "Dha (Komal)", "Pa", "Ma", "Ga (Komal)", "Re", "Sa"],
@@ -68,6 +75,7 @@ RAGA_DATABASE = {
         "mood": "Pathos, seriousness",
     },
     "Khamaj": {
+        "system": "Hindustani",
         "thaat": "Khamaj",
         "aroha": ["Sa", "Ga", "Ma", "Pa", "Dha", "Ni", "Sa"],
         "avaroha": ["Sa", "Ni (Komal)", "Dha", "Pa", "Ma", "Ga", "Re", "Sa"],
@@ -78,6 +86,7 @@ RAGA_DATABASE = {
         "mood": "Romantic, light",
     },
     "Malkauns": {
+        "system": "Hindustani",
         "thaat": "Bhairavi",
         "aroha": ["Sa", "Ga (Komal)", "Ma", "Dha (Komal)", "Ni (Komal)", "Sa"],
         "avaroha": ["Sa", "Ni (Komal)", "Dha (Komal)", "Ma", "Ga (Komal)", "Sa"],
@@ -88,6 +97,7 @@ RAGA_DATABASE = {
         "mood": "Serious, meditative, powerful",
     },
     "Darbari Kanada": {
+        "system": "Hindustani",
         "thaat": "Asavari",
         "aroha": ["Sa", "Re", "Ga (Komal)", "Ma", "Pa", "Dha (Komal)", "Ni (Komal)", "Sa"],
         "avaroha": ["Sa", "Ni (Komal)", "Dha (Komal)", "Pa", "Ma", "Pa", "Ga (Komal)", "Re", "Sa"],
@@ -98,6 +108,7 @@ RAGA_DATABASE = {
         "mood": "Majestic, serious, royal",
     },
     "Bageshri": {
+        "system": "Hindustani",
         "thaat": "Kafi",
         "aroha": ["Sa", "Ga (Komal)", "Ma", "Dha", "Ni (Komal)", "Sa"],
         "avaroha": ["Sa", "Ni (Komal)", "Dha", "Pa", "Ma", "Ga (Komal)", "Re", "Sa"],
@@ -106,6 +117,85 @@ RAGA_DATABASE = {
         "swaras": {"Sa", "Re", "Ga (Komal)", "Ma", "Pa", "Dha", "Ni (Komal)"},
         "time": "Late night",
         "mood": "Romantic, sentimental",
+    },
+
+    # ─── Carnatic (South Indian) Ragas ───
+    "Mayamalavagowla": {
+        "system": "Carnatic",
+        "thaat": "Melakarta #15",
+        "aroha": ["Sa", "Ri1", "Ga3", "Ma1", "Pa", "Dha1", "Ni3", "Sa"],
+        "avaroha": ["Sa", "Ni3", "Dha1", "Pa", "Ma1", "Ga3", "Ri1", "Sa"],
+        "vadi": "Ga3",
+        "samvadi": "Dha1",
+        "swaras": {"Sa", "Ri1", "Ga3", "Ma1", "Pa", "Dha1", "Ni3"},
+        "time": "Morning",
+        "mood": "Devotional, foundational (Abhyasa raga)",
+    },
+    "Dheerasankarabharanam": {
+        "system": "Carnatic",
+        "thaat": "Melakarta #29",
+        "aroha": ["Sa", "Ri2", "Ga3", "Ma1", "Pa", "Dha2", "Ni3", "Sa"],
+        "avaroha": ["Sa", "Ni3", "Dha2", "Pa", "Ma1", "Ga3", "Ri2", "Sa"],
+        "vadi": "Ga3",
+        "samvadi": "Dha2",
+        "swaras": {"Sa", "Ri2", "Ga3", "Ma1", "Pa", "Dha2", "Ni3"},
+        "time": "Any time",
+        "mood": "Majestic, grand, blissful",
+    },
+    "Mechakalyani": {
+        "system": "Carnatic",
+        "thaat": "Melakarta #65",
+        "aroha": ["Sa", "Ri2", "Ga3", "Ma2", "Pa", "Dha2", "Ni3", "Sa"],
+        "avaroha": ["Sa", "Ni3", "Dha2", "Pa", "Ma2", "Ga3", "Ri2", "Sa"],
+        "vadi": "Ga3",
+        "samvadi": "Ni3",
+        "swaras": {"Sa", "Ri2", "Ga3", "Ma2", "Pa", "Dha2", "Ni3"},
+        "time": "Evening",
+        "mood": "Auspicious, festive, serene",
+    },
+    "Mohanam": {
+        "system": "Carnatic",
+        "thaat": "Janya of Harikambhoji (#28)",
+        "aroha": ["Sa", "Ri2", "Ga3", "Pa", "Dha2", "Sa"],
+        "avaroha": ["Sa", "Dha2", "Pa", "Ga3", "Ri2", "Sa"],
+        "vadi": "Ga3",
+        "samvadi": "Dha2",
+        "swaras": {"Sa", "Ri2", "Ga3", "Pa", "Dha2"},
+        "time": "Evening / Night",
+        "mood": "Bright, uplifting, joyful",
+    },
+    "Hamsadhvani": {
+        "system": "Carnatic",
+        "thaat": "Janya of Dheerasankarabharanam (#29)",
+        "aroha": ["Sa", "Ri2", "Ga3", "Pa", "Ni3", "Sa"],
+        "avaroha": ["Sa", "Ni3", "Pa", "Ga3", "Ri2", "Sa"],
+        "vadi": "Ga3",
+        "samvadi": "Ni3",
+        "swaras": {"Sa", "Ri2", "Ga3", "Pa", "Ni3"},
+        "time": "Invocation / Beginning of Concert",
+        "mood": "Energetic, auspicious, vibrant",
+    },
+    "Kharaharapriya": {
+        "system": "Carnatic",
+        "thaat": "Melakarta #22",
+        "aroha": ["Sa", "Ri2", "Ga2", "Ma1", "Pa", "Dha2", "Ni2", "Sa"],
+        "avaroha": ["Sa", "Ni2", "Dha2", "Pa", "Ma1", "Ga2", "Ri2", "Sa"],
+        "vadi": "Pa",
+        "samvadi": "Sa",
+        "swaras": {"Sa", "Ri2", "Ga2", "Ma1", "Pa", "Dha2", "Ni2"},
+        "time": "Any time",
+        "mood": "Bhakti, devotion, meditative",
+    },
+    "Charukesi": {
+        "system": "Carnatic",
+        "thaat": "Melakarta #26",
+        "aroha": ["Sa", "Ri2", "Ga3", "Ma1", "Pa", "Dha1", "Ni2", "Sa"],
+        "avaroha": ["Sa", "Ni2", "Dha1", "Pa", "Ma1", "Ga3", "Ri2", "Sa"],
+        "vadi": "Ga3",
+        "samvadi": "Dha1",
+        "swaras": {"Sa", "Ri2", "Ga3", "Ma1", "Pa", "Dha1", "Ni2"},
+        "time": "Any time",
+        "mood": "Melancholic, poignant, soulful",
     },
 }
 
@@ -120,7 +210,7 @@ async def recognize_raga(file_path: str, swara_data: list[dict]) -> list[dict]:
     """
     try:
         if not swara_data:
-            return _mock_raga_data()
+            return []
 
         # Extract unique swaras used (normalize variants)
         detected_swaras = set()

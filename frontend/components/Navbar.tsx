@@ -8,6 +8,11 @@ import { useSwaraStore } from '@/lib/store';
 export default function Navbar() {
   const { user, logout } = useSwaraStore();
 
+  const handleLogout = () => {
+    logout();
+    window.location.href = '/login';
+  };
+
   return (
     <header className="sticky top-0 z-50 border-b border-amber-500/10 glass-panel bg-[#080B11]/80 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -59,12 +64,13 @@ export default function Navbar() {
                 <span>{user.name}</span>
               </Link>
               <button
-                onClick={logout}
-                className="p-2 rounded-lg text-gray-400 hover:text-rose-400 hover:bg-rose-500/10 transition-all"
+                onClick={handleLogout}
+                className="p-2 rounded-lg text-gray-400 hover:text-rose-400 hover:bg-rose-500/10 transition-all flex items-center gap-1.5 text-xs font-semibold"
                 title="Log Out"
                 id="btn-logout"
               >
-                <LogOut className="w-4 h-4" />
+                <LogOut className="w-4 h-4 text-rose-400" />
+                <span className="hidden sm:inline">Logout</span>
               </button>
             </div>
           ) : (
