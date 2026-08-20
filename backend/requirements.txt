@@ -1,0 +1,36 @@
+# FastAPI & Server
+fastapi==0.115.12
+uvicorn[standard]==0.34.3
+python-multipart==0.0.20
+
+# Authentication
+python-jose[cryptography]==3.4.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.3.0
+
+# Database
+sqlalchemy==2.0.41
+alembic==1.16.1
+asyncpg==0.31.0
+motor==3.7.0
+pymongo==4.12.1
+
+# Pydantic
+pydantic==2.11.4
+pydantic-settings==2.9.1
+email-validator==2.2.0
+
+# AI/ML
+openai==1.82.0
+librosa==0.11.0
+numpy==2.3.0
+scipy==1.15.3
+soundfile==0.13.1
+
+# Audio processing
+pydub==0.25.1
+
+# Utilities
+python-dotenv==1.1.0
+httpx==0.28.1
+aiofiles==24.1.0
